@@ -96,20 +96,16 @@ CONSOLE ?= xterm
 shell:
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py shell
 
+create:
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py startapp sites
+
 createsuperuser:
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py createsuperuser
 
-clean:
-	find . -name '*.pyc' -delete
-
-# Generate and compile translations.
-translations:
-	$(VENV) && cd $(APP_PATH) && django-admin makemessages -l fr -l nl -l es
-
-translate:
-	$(VENV) && cd $(APP_PATH) && django-admin compilemessages
+deploy:
+	scp -r * guiguide@ssh-guiguide.alwaysdata.net:/home/guiguide/www/conteos/
 
 ### Serving. ###
-serve_okocha:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py runserver $$PORT
+serve:
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py runserver
 
