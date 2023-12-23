@@ -16,7 +16,7 @@ NC=\033[0m
 
 ### Configure virtual environment. ###
 # Shortcut to set env command before each python cmd.
-VENV = source $(ENV_PATH)/bin/activate 
+VENV = source $(ENV_PATH)/bin/activate
 
 # Config is based on two environment files, initalized here.
 virtualenv: $(ENV_PATH)/bin/activate
@@ -41,13 +41,16 @@ migrations: virtualenv
 showmigrations: virtualenv
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py showmigrations
 
+clean:
+	find . -name '*.pyc' -delete
+
 # Install pre-push hook.
 GITHOOK_DIR=$(shell git rev-parse --git-dir)/hooks/
 
 $(GITHOOK_DIR)pre-push:
 	cp .pre-push.template $@
 
-install: psql pip migrate $(GITHOOK_DIR)pre-push
+install: pip migrate $(GITHOOK_DIR)pre-push
 
 ### Check that daemons are running. ###
 # Archlinux uses systemctl, this has to be adapted for cross platform.
@@ -62,26 +65,8 @@ CHECK_SYSCTL = !($(SYSCTL) >> /dev/null || (echo -e "${ORANGE}Systemctl is not s
 psql:
 	@$(CHECK_SYSCTL) || ($(SYSCTL) status postgresql >> /dev/null || (echo -e "${RED}Postgresql does not seem to be up.${NC}" && exit 1))
 
-### Configure testing. ###
-# General testing command.
-TEST_CMD = $(PYTHON) $(APP_PATH)/manage.py test
-
-# Launch all tests.
-test:
-	$(VENV) && export REUSE_DB=0 && $(TEST_CMD) conteos
-
-# Launch a specific test. Please edit this command if you are working
-# on one test specifically.
-test_unique:
-	$(VENV) && export REUSE_DB=0 && $(TEST_CMD) -x -s okocha/accounts/tests.py:OkochaTestCase.test_running_to_training
-
-# Coverage keyword will be recognize by django's manage.py and
-# coverage will be processed.
-coverage:
-	$(VENV) && $(TEST_CMD) conteos
-
 ### Code linting. ###
-PYLINT := pylint --load-plugins pylint_django $(APP_PATH)/okocha $(APP_PATH)/accounts $(APP_PATH)/strava $(APP_PATH)/sync_processes $(APP_PATH)/championship $(APP_PATH)/public_api $(APP_PATH)/decathlon $(APP_PATH)/monthly_summaries
+PYLINT := pylint --load-plugins pylint_django $(APP_PATH)/conteos
 
 pylint: virtualenv
 	$(VENV) && $(PYLINT) -rn
@@ -96,20 +81,14 @@ CONSOLE ?= xterm
 shell:
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py shell
 
-createsuperuser:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py createsuperuser
+deploy: clean
+	scp -r conteos/* --exclude conteos/staticfiles conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/conteos/
+	scp -r Makefile conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/
 
-clean:
-	find . -name '*.pyc' -delete
-
-# Generate and compile translations.
-translations:
-	$(VENV) && cd $(APP_PATH) && django-admin makemessages -l fr -l nl -l es
-
-translate:
-	$(VENV) && cd $(APP_PATH) && django-admin compilemessages
+collectstatic:
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py collectstatic
 
 ### Serving. ###
-serve_okocha:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py runserver $$PORT
+serve:
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py runserver
 

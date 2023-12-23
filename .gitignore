@@ -3,3 +3,4 @@ conteos_env
 .coverage
 site_media
 .noseids
+conteos/staticfiles
