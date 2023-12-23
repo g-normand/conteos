@@ -1,0 +1,5 @@
+conteos_env
+*.pyc
+.coverage
+site_media
+.noseids
