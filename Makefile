@@ -30,38 +30,7 @@ $(ENV_PATH)/bin/activate:
 pip: virtualenv
 	$(VENV) && cd $(APP_PATH) && pip3 install -r $(APP_PATH)/requirements.txt;
 
-# Migrate database.
-migrate: virtualenv
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py migrate
-
-migrations: virtualenv
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py makemigrations
-
-# Show migrations state of the db
-showmigrations: virtualenv
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py showmigrations
-
-# Install pre-push hook.
-GITHOOK_DIR=$(shell git rev-parse --git-dir)/hooks/
-
-$(GITHOOK_DIR)pre-push:
-	cp .pre-push.template $@
-
-install: psql pip migrate $(GITHOOK_DIR)pre-push
-
 ### Check that daemons are running. ###
-# Archlinux uses systemctl, this has to be adapted for cross platform.
-SYSCTL = systemctl
-
-# Warning: In shell, 0 is succes, <0 is failure, so double check your bool logic.
-# Test logic: if daemon check is not possible on platfom, should return 0, not to
-# execute further tests. Otherwise return 1, to continue.
-CHECK_SYSCTL = !($(SYSCTL) >> /dev/null || (echo -e "${ORANGE}Systemctl is not supported by your platform.${NC} Please update makefile or check yourself that daemons are running." && exit 1))
-
-# Check that postgresql is up and running.
-psql:
-	@$(CHECK_SYSCTL) || ($(SYSCTL) status postgresql >> /dev/null || (echo -e "${RED}Postgresql does not seem to be up.${NC}" && exit 1))
-
 ### Configure testing. ###
 # General testing command.
 TEST_CMD = $(PYTHON) $(APP_PATH)/manage.py test
@@ -89,23 +58,18 @@ pylint: virtualenv
 pylint_full: virtualenv
 	$(VENV) && $(PYLINT) -ry
 
-### Misc. ###
-# Set a terminal in case user did not.
-CONSOLE ?= xterm
+clean:
+	find . -name '*.pyc' -delete
 
-shell:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py shell
-
-create:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py startapp sites
-
-createsuperuser:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py createsuperuser
-
-deploy:
-	scp -r * guiguide@ssh-guiguide.alwaysdata.net:/home/guiguide/www/conteos/
+deploy: clean
+	rsync -r conteos/* guiguide@ssh-guiguide.alwaysdata.net:/home/guiguide/www/conteos/conteos/
+	scp Makefile guiguide@ssh-guiguide.alwaysdata.net:/home/guiguide/www/conteos/
+	echo "make pip"
 
 ### Serving. ###
 serve:
-	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py runserver
+	$(VENV) && $(PYTHON) -m flask --app conteos/views run --port 8000 --debug
+
+serve_prod:
+	$(VENV) && $(PYTHON) conteos/wsgi.py
 
