@@ -16,7 +16,7 @@ NC=\033[0m
 
 ### Configure virtual environment. ###
 # Shortcut to set env command before each python cmd.
-VENV = source $(ENV_PATH)/bin/activate 
+VENV = source $(ENV_PATH)/bin/activate
 
 # Config is based on two environment files, initalized here.
 virtualenv: $(ENV_PATH)/bin/activate
@@ -27,36 +27,12 @@ $(ENV_PATH)/bin/activate:
 
 ### Manage project installation. ###
 # Install python requirements.
-pip: virtualenv
-	$(VENV) && cd $(APP_PATH) && pip3 install -r $(APP_PATH)/requirements.txt;
+install: virtualenv
+	$(VENV) && pip3 install -r requirements.txt
 
-### Check that daemons are running. ###
-### Configure testing. ###
-# General testing command.
-TEST_CMD = $(PYTHON) $(APP_PATH)/manage.py test
+install_alwaysdata: virtualenv
+	 python -m pip install -r requirements.txt
 
-# Launch all tests.
-test:
-	$(VENV) && export REUSE_DB=0 && $(TEST_CMD) conteos
-
-# Launch a specific test. Please edit this command if you are working
-# on one test specifically.
-test_unique:
-	$(VENV) && export REUSE_DB=0 && $(TEST_CMD) -x -s okocha/accounts/tests.py:OkochaTestCase.test_running_to_training
-
-# Coverage keyword will be recognize by django's manage.py and
-# coverage will be processed.
-coverage:
-	$(VENV) && $(TEST_CMD) conteos
-
-### Code linting. ###
-PYLINT := pylint --load-plugins pylint_django $(APP_PATH)/okocha $(APP_PATH)/accounts $(APP_PATH)/strava $(APP_PATH)/sync_processes $(APP_PATH)/championship $(APP_PATH)/public_api $(APP_PATH)/decathlon $(APP_PATH)/monthly_summaries
-
-pylint: virtualenv
-	$(VENV) && $(PYLINT) -rn
-
-pylint_full: virtualenv
-	$(VENV) && $(PYLINT) -ry
 
 clean:
 	find . -name '*.pyc' -delete
@@ -67,8 +43,8 @@ deploy: clean
 	echo "make pip"
 
 ### Serving. ###
-serve:
-	$(VENV) && $(PYTHON) -m flask --app conteos/views run --port 8000 --debug
+serve: virtualenv
+	$(VENV) && python start-bottle.py
 
 serve_prod:
 	$(VENV) && $(PYTHON) conteos/wsgi.py

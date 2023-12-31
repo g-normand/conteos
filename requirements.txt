@@ -1,0 +1,5 @@
+bottle
+bottle_errorsrest
+requests
+bottle-sqlalchemy
+git+https://github.com/avelino/bottle-admin.git@master
