@@ -1,5 +1,4 @@
-from django.shortcuts import render
-
+import json
 from django.core import serializers
 from django.http import HttpResponse
 
@@ -13,4 +12,12 @@ def index(request):
 def get_all(request):
 
     raw_data = serializers.serialize('json', CountSite.objects.all())
-    return HttpResponse(raw_data)
+
+    # Convert JSON to Python dictionary
+    data_dict = {'data': json.loads(raw_data)}
+
+    # Convert dictionary to JSON
+    json_data = json.dumps(data_dict)
+
+    # Return JSON as HTTP response
+    return HttpResponse(json_data, content_type='application/json')
