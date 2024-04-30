@@ -14,6 +14,7 @@ class CountSite(models.Model):
     email = models.CharField(max_length=100, null=True, blank=True)
     link_url = models.CharField(max_length=100, blank=True, null=True)
     ebird_trip_report_url = models.CharField(max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.name} ({self.start_date.date()})'

@@ -11,7 +11,7 @@ def index(request):
 
 def get_all(request):
 
-    raw_data = serializers.serialize('json', CountSite.objects.all())
+    raw_data = serializers.serialize('json', CountSite.objects.filter(is_active=True).all())
 
     # Convert JSON to Python dictionary
     data_dict = {'data': json.loads(raw_data)}

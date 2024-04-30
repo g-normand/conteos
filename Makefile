@@ -30,11 +30,17 @@ shell:
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py shell
 
 deploy: clean
-	scp -r conteos/* --exclude conteos/staticfiles/ conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/conteos/
-	scp -r Makefile conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/
+	rsync -r conteos/* --exclude conteos/staticfiles/ conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/conteos/
+	rsync Makefile conteosec@ssh-conteosec.alwaysdata.net:/home/conteosec/www/conteos_db/
 
 collectstatic:
 	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py collectstatic
+
+migrate: virtualenv
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py migrate
+
+migrations: virtualenv
+	$(VENV) && $(PYTHON) $(APP_PATH)/manage.py makemigrations
 
 ### Serving. ###
 serve: virtualenv
