@@ -10,11 +10,15 @@ class CountSite(models.Model):
     city = models.CharField(max_length=100)
     latitude = models.FloatField(blank=True, null=True, help_text='Between -5 and 5 usually')
     longitude = models.FloatField(blank=True, null=True, help_text='Between -75 and -85 usually')
+    contact = models.CharField(max_length=100, null=True, blank=True,
+                               help_text='Name of the contact')
     phone_number = models.CharField(max_length=10, null=True, blank=True,
                                     help_text='One number, Ecuadorian phones only')
     email = models.CharField(max_length=100, null=True, blank=True)
+    picture_url = models.CharField(max_length=100, blank=True, null=True,
+                                   help_text='Link for an image (you can use https://postimages.org)')
     link_url = models.CharField(max_length=100, blank=True, null=True,
-                                help_text='Link for an image (you can use https://postimages.org)')
+                                help_text='Link for a googleform or whatever')
     ebird_trip_report_url = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
